@@ -10,10 +10,17 @@ Clone the project on your server
 
 ## Requirements
 
-You have to have these program on your computer :
+You have to have these program :
+
+On your computer :
 
 - SSH  (`ssh --version`)
 - SSH COPY ID (`ssh-copy-id -h`)
+
+On your server
+
+- Make (`make --version`)
+- SSH  (`ssh --version`)
 
 ## Setup VPS ssh authentication
 
@@ -77,13 +84,34 @@ adduser user
 
 Enter a secure password and press `ENTER` for each question to pass and validate the information with `Y`.
 
-Then give administrator rights to the new user.
+Then give root rights to the new user.
 
 ```shell
-usermod -aG sudo <user>
+visudo
 ```
 
+The command below leads us to the `/etc/sudoers.tmp` file where we can view the following code
+
+```shell
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+```
+
+After the root user line, you’ll add in your new user with the same format for us to grant admin privledges.
+
+```shell
+user    ALL=(ALL:ALL)ALL
+```
+
+Of course change `user` by your own user you created before
+
 Commands requiring administrator rights will be preceded by the `sudo` keyword and the user’s password will then be requested.
+
+Restart your server
+
+```shell
+shutdown -r now
+```
 
 ## Use the SSH key to connect to the new user
 
@@ -168,3 +196,4 @@ make install
 - [Hostinger](https://www.hostinger.com/tutorials/getting-started-with-vps-hosting)
 - [Medium](https://medium.com/sebbossoutrot/installation-et-configuration-dun-vps-sur-ovh-avec-debian9-wordpress-et-ssl-810603968b71)
 - [Install OVH on VPS](https://gist.github.com/tattali/58564a8c7233098fd207bcf42ed14821)
+- [Grant administrator rights](https://www.liquidweb.com/kb/add-user-grant-root-privileges-ubuntu-18-04/)
