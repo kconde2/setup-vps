@@ -107,6 +107,12 @@ Of course change `user` by your own user you created before
 
 Commands requiring administrator rights will be preceded by the `sudo` keyword and the user’s password will then be requested.
 
+If you want user to be not prompted for password, run this :
+
+```shell
+user    ALL=NOPASSWD: ALL
+```
+
 Restart your server
 
 ```shell
@@ -197,3 +203,4 @@ make install
 - [Medium](https://medium.com/sebbossoutrot/installation-et-configuration-dun-vps-sur-ovh-avec-debian9-wordpress-et-ssl-810603968b71)
 - [Install OVH on VPS](https://gist.github.com/tattali/58564a8c7233098fd207bcf42ed14821)
 - [Grant administrator rights](https://www.liquidweb.com/kb/add-user-grant-root-privileges-ubuntu-18-04/)
+- [More productive with ZSH](https://medium.com/@ivanaugustobd/your-terminal-can-be-much-much-more-productive-5256424658e8)
