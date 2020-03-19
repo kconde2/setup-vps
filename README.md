@@ -1,5 +1,13 @@
 # Installing VPS Server
 
+1. Install zsh
+2. Setup server connection
+3. Install docker and docker-compose
+4. Create deployer user
+5. Security
+
+Clone the project on your server
+
 ## Requirements
 
 You have to have these program on your computer :

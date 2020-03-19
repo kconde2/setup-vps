@@ -1,6 +1,8 @@
 #!/bin/bash
 echo -e "\nUpdate system"
+sudo rm /var/lib/dpkg/updates/000*
 apt-get install sudo -y
+sudo apt-get clean
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt autoremove -y
@@ -24,6 +26,7 @@ COMPOSE_VERSION=`git ls-remote https://github.com/docker/compose | grep refs/tag
 
 echo -e "\nInstalling docker-compose version : ${COMPOSE_VERSION}"
 sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod g+x /usr/local/bin/docker-compose
 echo -e "[Done]"
 
 echo -e "\nInstall docker-cleanup command"
