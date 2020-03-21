@@ -1,13 +1,5 @@
 # Installing VPS Server
 
-1. Install zsh
-2. Setup server connection
-3. Install docker and docker-compose
-4. Create deployer user
-5. Security
-
-Clone the project on your server
-
 ## Requirements
 
 You have to have these program :
@@ -19,46 +11,78 @@ On your computer :
 
 On your server
 
-- Make (`make --version`)
+- Make (`make --version`) (apt install make)
 - SSH  (`ssh --version`)
+- Git (`git --version`) (apt install git)
 
-## Setup VPS ssh authentication
+Clone the project on your server
 
-Generate ssh key on your computer. If you have one go to next part
+## Install zsh (optional)
 
-```shell
-ssh-keygen -t rsa -b 4096 -o -a 100
-```
-
-Next, create a passphrase (Password) or press ENTER to not use it.
-
-> **NOTE**: If you do not use a passphrase, you will be able to connect to the server without entering a password. It is advisable to use a passphrase, although not using one is always more secure than traditional password authentication.
-
-This generates two files: id_rsa (private key), and id_rsa.pub (public key), in the folder . ssh of the current user directory. Remember that the **private key must not be shared**.
-
-Copy your generated public key to server
+- Install `zsh`
 
 ```shell
-ssh-copy-id ~/.ssh/id_rsa.pub <user>@<ip-address>
+apt install git-core zsh -y
 ```
 
-## Connect to your VPS
+- Install `oh-my-zsh`
 
 ```shell
-ssh <user>@<ip-address>
+sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 ```
 
-During the first connection, a confirmation message will appear to add the host fingerprint to the `~/. ssh/known_hosts` file
+- Change default to zsh
 
 ```shell
-The authenticity of host 'vps... (192.89.11.121)' can't be established.
-ECDSA key fingerprint is SHA256:*******************************************.
-Are you sure you want to continue connecting (yes/no)? yes
+chsh -s $(which zsh)
 ```
 
-Enter `yes` and press `ENTER` to log in.
+- Install powerline font
 
-## Secure server
+```shell
+apt install fonts-powerline -y
+```
+
+- Install Power10k
+
+```shell
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>! ~/.zshrc
+```
+
+- Install productivity plugins
+
+Zsh syntax hightlighting
+
+```shell
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+
+Install Zsh syntax autosuggestions
+
+```shell
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+```
+
+Configuration previous installed plugins
+
+```zshrc
+plugins=(
+   git
+   zsh-autosuggestions
+   zsh-syntax-highlighting
+)
+```
+
+Install Fzf
+
+```shell
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
+```
+
+[Reference](https://askubuntu.com/questions/521469/oh-my-zsh-for-the-root-and-for-all-user)
+
+## Configure your server
 
 ### Change root user password
 
@@ -79,7 +103,7 @@ The system will then ask to enter a new password twice to validate it. As a secu
 We will therefore create a user with restricted access to perform current tasks.
 
 ```shell
-adduser user
+adduser deployer
 ```
 
 Enter a secure password and press `ENTER` for each question to pass and validate the information with `Y`.
@@ -100,7 +124,7 @@ root    ALL=(ALL:ALL) ALL
 After the root user line, you’ll add in your new user with the same format for us to grant admin privledges.
 
 ```shell
-user    ALL=(ALL:ALL)ALL
+deployer    ALL=(ALL:ALL)ALL
 ```
 
 Of course change `user` by your own user you created before
@@ -110,7 +134,7 @@ Commands requiring administrator rights will be preceded by the `sudo` keyword a
 If you want user to be not prompted for password, run this :
 
 ```shell
-user    ALL=NOPASSWD: ALL
+deployer    ALL=(ALL) NOPASSWD:ALL
 ```
 
 Restart your server
@@ -119,23 +143,71 @@ Restart your server
 shutdown -r now
 ```
 
-## Use the SSH key to connect to the new user
+or
+
+```shell
+sudo /sbin/reboot
+```
+
+### Setup VPS ssh authentication with new user
+
+- Generate ssh key on your computer. If you already have one go to next part
+
+```shell
+ssh-keygen -t rsa -b 4096 -o -a 100
+```
+
+Next, create a passphrase (Password) or press ENTER to not use it.
+
+> **NOTE**: If you do not use a passphrase, you will be able to connect to the server without entering a password. It is advisable to use a passphrase, although not using one is always more secure than traditional password authentication.
+
+This generates two files: id_rsa (private key), and id_rsa.pub (public key), in the folder . ssh of the current user directory. Remember that the **private key must not be opt**.
+
+- Copy your generated public key to server
+
+```shell
+ssh-copy-id -i ~/.ssh/id_rsa.pub <deployer>@<ip-address>
+```
+
+### Login new user
+
+```shell
+ssh <deployer>@<ip-address>
+```
+
+During the first connection, a confirmation message will appear to add the host fingerprint to the `~/. ssh/known_hosts` file
+
+```shell
+The authenticity of host 'vps... (192.89.11.121)' can't be established.
+ECDSA key fingerprint is SHA256:*******************************************.
+Are you sure you want to continue connecting (yes/no)? yes
+```
+
+Enter `yes` and press `ENTER` to log in.
+
+## Security
+
+### Use the SSH key to connect to the new user
 
 Open a new terminal window and use `ssh-copy-id`.
 
 ```shell
-ssh-copy-id <user>@<ip-address>
+ssh-copy-id <deployer>@<ip-address>
 ```
 
 ### SSH setup
 
 ```shell
-nano /etc/ssh/sshd_config
+vi /etc/ssh/sshd_config
 ```
 
 ### Change ssh default port
 
 To see the ports used
+
+```shell
+sudo apt install net-tools
+```
 
 ```shell
 netstat -nat | grep LISTEN
@@ -158,19 +230,19 @@ PermitRootLogin no
 ### Restart ssh agent
 
 ```sshd_config
-/etc/init.d/ssh reload
+sudo /etc/init.d/ssh reload
 ```
 
 or
 
 ```ssh
-service ssh restart
+sudo service ssh restart
 ```
 
 Logout and login with new user
 
 ```shell
-ssh <user>@<ip-address> -p <new-port>
+ssh <deployer>@<ip-address> -p <new-port>
 ```
 
 From now on, commands requiring root rights will be preceded by the `sudo` keyword.
@@ -184,23 +256,102 @@ su root
 ```
 
 ```shell
-su <user>
+su <deployer>
 ```
 
 But you can use either root user or the new created user for the rest of the tutorial.
 
 ## Install Docker and DockerCompose
 
+- Create working directory where all user can access, ex.
+
+```shell
+mkdir -p /opt/setup
+```
+
+- Clone this repository then run
+
 ```shell
 make install
 ```
 
+If you would like to use Docker as a non-root user, you should now consider
+adding your user to the "docker" group with something like
+
+```shell
+sudo usermod -aG docker <deployer>
+```
+
 ## Firewall - Using UFW
+
+### Installing UFW
+
+```shell
+sudo apt-get install ufw
+```
+
+### Configuring Security Policies
+
+> Security policies applied by the firewall on your server depend on your needs and the applications you use.
+> The most secure configuration is to block all traffic, inbound and outbound by default and to allow ports on a a case by case policy.
+> In this tutorial a policy will be configured that blocks inbound packets and authorizes outbound traffic by default.
+
+1 . Start by defining the policy, that refuses everything by default:
+
+```shell
+sudo ufw default deny
+```
+
+### Establishing rules
+
+> To define rules, you have to know which services are running on the server and which are their associtated ports.
+> In this example, a SSH server, HTTP(S) and a DNS server are running on the machine.
+> Every known protocol uses an associated port from the [Well Known Ports list](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
+> The services running on the machine, used in this example have need for the following ports:
+
+- Port 22 / TCP for SSH
+- Port 80 / TCP for HTTP
+- Port 443 / TCP for HTTPS
+- Port 53 / TCP & UDP for DNS
+
+```shell
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 22/tcp
+```
+
+Change `22` by your `new ssh port`
+
+Active the new rules
+
+```shell
+sudo ufw enable
+```
+
+Verify the configuration
+
+```shell
+sudo ufw status numbered
+```
+
+Note:
+**If you've already set a custom number port for SSH connection do not forget to allow it, otherwise you will be not able to login 😅**
+
+## Useful commands
+
+List Hardware
+
+```shell
+sudo lshw -short
+```
 
 ## References
 
+- [ZSH power10k](https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k)
 - [Hostinger](https://www.hostinger.com/tutorials/getting-started-with-vps-hosting)
 - [Medium](https://medium.com/sebbossoutrot/installation-et-configuration-dun-vps-sur-ovh-avec-debian9-wordpress-et-ssl-810603968b71)
 - [Install OVH on VPS](https://gist.github.com/tattali/58564a8c7233098fd207bcf42ed14821)
 - [Grant administrator rights](https://www.liquidweb.com/kb/add-user-grant-root-privileges-ubuntu-18-04/)
 - [More productive with ZSH](https://medium.com/@ivanaugustobd/your-terminal-can-be-much-much-more-productive-5256424658e8)
+- [Configure Firewall](https://www.scaleway.com/en/docs/configure-ufw-firewall-on-ubuntu-bionic-beaver/)
+- [Linux sudo without password](https://www.cyberciti.biz/faq/linux-unix-running-sudo-command-without-a-password/)

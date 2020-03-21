@@ -1,6 +1,5 @@
 #!/bin/bash
 echo -e "\nUpdate system"
-sudo rm /var/lib/dpkg/updates/000*
 apt-get install sudo -y
 sudo apt-get clean
 apt update && apt upgrade
