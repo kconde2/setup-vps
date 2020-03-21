@@ -5,6 +5,7 @@ sudo apt-get clean
 apt update && apt upgrade
 sudo apt autoremove -y
 sudo apt install -y curl
+sudo apt-get install apache2-utils -y #htpasswd
 
 # Ask for the user password
 # Script only works if sudo caches the password for a few minutes
