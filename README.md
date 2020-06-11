@@ -282,6 +282,8 @@ adding your user to the "docker" group with something like
 sudo usermod -aG docker <deployer>
 ```
 
+> Important : Restart your vps `shutdown -r now`
+
 ## Firewall - Using UFW
 
 ### Installing UFW
